@@ -7,7 +7,8 @@ export const name = 'get-random-pig'
 const defaultCommand: string[] = ["祝", "猪", "好多猪", "好多祝", "🐖", "㊗️"];
 
 export interface Config {
- pig?: string[]
+ pig?: string[],
+  isMessagePig?: boolean,
 }
 export const Config: Schema<Config> = Schema.intersect([
   Schema.object({
@@ -23,6 +24,11 @@ export const Config: Schema<Config> = Schema.intersect([
   }).description('使用说明'),
 
   Schema.object({
+    isMessagePig: Schema.boolean().default(true)
+      .description(`开启群友发触发词后一键发猪猪`)
+  }).description('发猪猪设置'),
+
+  Schema.object({
     pig: Schema.array(
       Schema.string()
         .required()
@@ -32,7 +38,8 @@ export const Config: Schema<Config> = Schema.intersect([
         .default(defaultCommand)
     })
       .role("table")
-      .description("猪猪的触发词")
+      .description("猪猪的触发词"),
+
   ])
 
 export const inject = {
@@ -156,6 +163,9 @@ export function apply(ctx: Context, config: Config) {
   ctx.on("message", async (session) => {
   })
 
+  ctx.command("猪").action(async (_) => await getImage());
+
+  if (config.isMessagePig)
   ctx.middleware(async (session, next) => {
     if (pigName.includes(session.content)) {
       return await getImage();

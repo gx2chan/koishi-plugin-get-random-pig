@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-get-random-pig",
-  "description": "依靠着https://pighub.top资源的随机猪猪群友插件哦",
-  "version": "1.0.0",
+  "description": "依靠着pighub.top资源的随机猪猪群友插件哦",
+  "version": "1.0.1",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -30,7 +30,7 @@
     "browser" : true,
     "category": "tool",
     "description": {
-      "zh": "依靠着https://pighub.top资源的随机猪猪群友插件哦"
+      "zh": "依靠着pighub.top资源的随机猪猪群友插件哦"
     }
   }
 }
