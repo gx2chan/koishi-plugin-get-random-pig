@@ -19,7 +19,9 @@ export const Config: Schema<Config> = Schema.intersect([
 
 - 在群里有人发送你设置的猪猪触发词时返回一个随机猪猪！！！
 
-- 有时间再写个搜索猪猪图片的功能
+- 找猪功能已部署，使用/找猪 （猪猪名）来尝试找到你想要的猪猪吧
+
+使用示例： \`/找猪 猪睡觉\`、\`/猪\`
     `).role('label')
   }).description('使用说明'),
 
@@ -84,6 +86,19 @@ const getRandomImage = () => {
   return imageCache.images[randomIndex];
 };
 
+const getSearchImage = (pigName : string) => {
+  if (isCacheEmpty()) return null;
+
+  const relatedImages = imageCache.images.filter(img =>
+    img.title.toLowerCase().includes(pigName.toLowerCase()) ||
+    (img.filename && img.filename.toLowerCase().includes(pigName.toLowerCase()))
+  );
+
+  if (relatedImages.length === 0) return null;
+  return relatedImages[Math.floor(Math.random() * relatedImages.length)];
+
+}
+
 let intervalId = null;
 
 
@@ -129,21 +144,30 @@ export function apply(ctx: Context, config: Config) {
 
   };
 
+  enum GetImageType {
+    randomImage,
+    searchImage
+  }
 
-
-  async function getImage() {
+  async function getImage(actionType : GetImageType, pigName : string = '') {
     if (isCacheEmpty()) {
       const success = await getAllImages();
       if (!success) {
         return "🐖迷路了";
       }
     }
-    const randomImage = getRandomImage();
-    if (!randomImage) {
+    let image : ImageJson | null;
+
+    if (actionType == GetImageType.randomImage)
+      image = getRandomImage();
+    else if (actionType == GetImageType.searchImage)
+      image = getSearchImage(pigName);
+
+    if (!image) {
       return "没有🐖了";
     }
 
-    const picName = randomImage.thumbnail;
+    const picName = image.thumbnail;
 
 
     return h('img', {
@@ -163,12 +187,14 @@ export function apply(ctx: Context, config: Config) {
   ctx.on("message", async (session) => {
   })
 
-  ctx.command("猪").action(async (_) => await getImage());
+  ctx.command("猪").action(async (_) => await getImage(GetImageType.randomImage));
+
+  ctx.command("找猪", "message").action(async (_, message) => await getImage(GetImageType.searchImage, message));
 
   if (config.isMessagePig)
   ctx.middleware(async (session, next) => {
     if (pigName.includes(session.content)) {
-      return await getImage();
+      return await getImage(GetImageType.randomImage);
     } else return next();
   }, true);
 
