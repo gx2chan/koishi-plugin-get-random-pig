@@ -48,17 +48,15 @@ export const inject = {
   required: ['http'],
 }
 
-// PigHub的图片json
+// PigHub 当前 API 的图片数据结构
 interface ImageJson {
-  "id": string,
-  "thumbnail": string,
-  "mtime": number,
-  "duration": string,
-  "filename": string,
-  "download_count": number,
-  "title": string,
-  "image_type": string,
-  "view_count": number,
+  id: number,
+  title: string,
+  filename: string,
+  mtime: number,
+  view_count: number,
+  download_count: number,
+  image_url: string,
 }
 
 interface ImageCache {
@@ -111,14 +109,15 @@ export function apply(ctx: Context, config: Config) {
     try {
 
 
-      const response = await ctx.http.get(
-        `https://pighub.top/api/all-images`
-      );
+      const response = await ctx.http.get<{
+        code: number,
+        data: ImageJson[],
+      }>(`https://pighub.top/api/images?sort=2`);
 
-      if (response && response.total > 0) {
+      if (response && response.code === 0 && Array.isArray(response.data) && response.data.length > 0) {
         imageCache = {
-          images: response.images,
-          ids: response.images.map(i => i.id),
+          images: response.data,
+          ids: response.data.map(i => String(i.id)),
           lastUpdated: new Date()
         };
         return true;
@@ -167,7 +166,7 @@ export function apply(ctx: Context, config: Config) {
       return "没有🐖了";
     }
 
-    const picName = image.thumbnail;
+    const picName = image.image_url;
 
 
     return h('img', {
